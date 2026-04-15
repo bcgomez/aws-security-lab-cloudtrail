@@ -1,130 +1,161 @@
 # 🔐 AWS Security Lab: Incident Investigation with CloudTrail
 
-## 📌 Overview
-
-This project demonstrates how to detect, analyze, and investigate a security incident in AWS using **CloudTrail**.
-
-A simulated attack is performed by modifying Security Group rules, exposing a web server and allowing unauthorized changes.
+This project simulates a real-world AWS security incident where a web server was modified without authorization. The investigation was conducted using AWS CloudTrail, EC2, and Security Groups.
 
 ---
 
-## 🧰 Technologies Used
+## 🚨 Problem Statement
 
-- Amazon EC2
-- Security Groups
-- AWS CloudTrail
-- Amazon S3
+A web server hosted on AWS EC2 was unexpectedly modified, displaying unauthorized content.
 
----
-
-## 🧩 1. EC2 Instance Deployment
-
-An EC2 instance was launched to host a web application.
-
-![EC2 Instances](./images/01-ec2-instances.png)
+The goal of this lab is to:
+- Identify the source of the change
+- Analyze the security breach
+- Use AWS CloudTrail to investigate the incident
 
 ---
 
-## 🔐 2. Initial Security Configuration
+## 🏗️ Environment Setup
 
-The Security Group initially allowed only HTTP traffic (port 80), restricting access to the application.
-
-![Initial Security Group](./images/02-security-group-initial.png)
-
----
-
-## ⚠️ 3. Security Group Modification (Attack Vector)
-
-An inbound rule was added allowing SSH access (port 22) from an external IP.
-
-This change exposed the instance to potential unauthorized access.
-
-![Modified Security Group](./images/03-security-group-modified.png)
+- Amazon EC2 instance (Web Server)
+- Security Groups configured for HTTP and SSH
+- Public access enabled (port 80)
+- Web application deployed (Café website)
 
 ---
 
-## 🌐 4. Web Server Validation
-
-The web server was accessed successfully using the public IP address.
-
-![Web Server Running](./images/04-web-server-running.png)
+## 🔄 Step-by-Step Investigation
 
 ---
 
-## ☕ 5. Normal Application State
+### 🔹 Step 1: EC2 Instance Deployment
 
-The application displayed its original content correctly.
+The EC2 instance was launched and configured to host a web server.
 
-![Normal Café Page](./images/05-cafe-page-normal.png)
-
----
-
-## 🚨 6. Compromised Application
-
-After unauthorized access, the application content was modified.
-
-This demonstrates the impact of insecure configurations.
-
-![Hacked Café Page](./images/06-cafe-page-hacked.png)
+![EC2 Instances](images/01-ec2-instances.png)
 
 ---
 
-## 🕵️ 7. CloudTrail Activation
+### 🔹 Step 2: Initial Security Group Configuration
 
-CloudTrail was enabled to log all activity within the AWS environment.
+The security group initially allowed:
+- HTTP (port 80) from anywhere (`0.0.0.0/0`)
+- SSH (port 22) from a specific IP
 
-This is critical for auditing and forensic analysis.
-
-![CloudTrail Created](./images/07-cloudtrail-created.png)
-
----
-
-## 📊 8. Event History Analysis
-
-CloudTrail logs revealed multiple actions related to Security Group changes.
-
-The event `AuthorizeSecurityGroupIngress` was identified as a key indicator of compromise.
-
-![Event History](./images/08-event-history.png)
+![Initial Security Group](images/02-security-group-initial.png)
 
 ---
 
-## 🔍 9. Detailed Event Investigation
+### 🔹 Step 3: Modified Security Group
 
-The suspicious event was analyzed in detail.
+Changes were made to the security group rules, enabling broader access.
 
-### Key Findings:
-- **Event Name:** AuthorizeSecurityGroupIngress  
-- **User:** Barbara_Catalina_Gomez_Perez  
-- **Source IP:** 181.53.96.117  
-- **Resource:** Security Group (sg-0740f4f52b0ec1c9d)  
-
-This confirms that the attack originated from an external IP and modified inbound rules.
-
-![Event Detail](./images/09-event-detail.png)
+![Modified Security Group](images/03-security-group-modified.png)
 
 ---
 
-## 🧠 Key Learnings
+### 🔹 Step 4: Web Server Running
 
-- Misconfigured Security Groups can expose infrastructure
-- CloudTrail is essential for auditing and investigation
-- Monitoring changes in real-time is critical for security
-- Even simple misconfigurations can lead to full compromise
+The web server was successfully deployed and accessible via public IP.
+
+![Web Server Running](images/04-web-server-running.png)
 
 ---
 
-## 🚀 Conclusion
+### 🔹 Step 5: Normal Website Behavior
 
-This lab simulates a real-world cloud security incident and demonstrates how to:
+The café website was functioning correctly.
 
-- Detect unauthorized access
-- Investigate security events
-- Understand the importance of cloud monitoring tools
+![Normal Website](images/05-cafe-page-normal.png)
+
+---
+
+### 🔹 Step 6: Website Compromised
+
+Unexpected content appeared on the website, indicating a potential security breach.
+
+![Hacked Website](images/06-cafe-page-hacked.png)
+
+---
+
+### 🔹 Step 7: CloudTrail Enabled
+
+AWS CloudTrail was configured to log all events for investigation.
+
+![CloudTrail Setup](images/07-cloudtrail-created.png)
+
+---
+
+### 🔹 Step 8: Event History Analysis
+
+CloudTrail logs were reviewed to identify suspicious activity.
+
+![Event History](images/08-event-history.png)
+
+---
+
+### 🔹 Step 9: Event Detail Investigation
+
+Detailed event analysis revealed:
+- The action performed: `AuthorizeSecurityGroupIngress`
+- Source IP address involved
+- User and service responsible for the change
+
+![Event Detail](images/09-event-detail.png)
+
+---
+
+## 🔍 Investigation Findings
+
+- The EC2 instance was publicly accessible via HTTP
+- Unauthorized content appeared on the web application
+- CloudTrail logs captured security group modification events
+- The source IP address of the action was identified
+- The change allowed broader access to the server
+
+---
+
+## ⚠️ Root Cause
+
+The security group allowed unrestricted inbound access (`0.0.0.0/0`) on port 80, exposing the web server to the public internet and increasing the risk of unauthorized modifications.
+
+---
+
+## 🛡️ Mitigation Actions
+
+- Restricted inbound traffic to trusted IP addresses only
+- Enabled CloudTrail for continuous monitoring
+- Reviewed and hardened Security Group configurations
+- Reduced unnecessary public exposure of services
+
+---
+
+## 📚 Key Learnings
+
+- Importance of properly configuring Security Groups
+- Risks of exposing services to the public internet
+- How to use CloudTrail for forensic investigation
+- Basics of incident detection and response in AWS
+- Understanding how misconfigurations can lead to vulnerabilities
+
+---
+
+## 🚀 Future Improvements
+
+- Implement CloudWatch alerts for suspicious activity
+- Apply IAM least privilege principles
+- Automate infrastructure using Terraform
+- Add AWS Config for compliance monitoring
+
+---
+
+## 💡 Conclusion
+
+This lab demonstrates how misconfigured security settings can lead to vulnerabilities and highlights the importance of monitoring, logging, and proper access control in cloud environments.
 
 ---
 
 ## 👩‍💻 Author
 
-**Barbara Catalina Gomez Perez**  
-Cloud / DevOps / Security Learner 🚀
+**Barbara Gomez**  
+Aspiring Cloud & DevOps Engineer 🚀  
